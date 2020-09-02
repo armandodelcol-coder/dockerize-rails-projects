@@ -131,6 +131,10 @@ $ `docker-compose up`
 $ `docker-compose run --rm app bundle exec rails db:create db:migrate`
 (docker-compose run --rm app #AND YOUR COMMAND#)
 
+other example:
+
+$ `docker-compose run --rm app bundle exec rails webpacker:install`
+
 ### Permission problem ?
 
 If you create any file from your container like `docker-compose run --rm app bundle exec rails g todos controller`, you will need a permission to edit the files in your local machine, run this:

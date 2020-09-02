@@ -93,7 +93,7 @@ services:
     environment:
       - DB_PASSWORD=postgres
     volumes:
-      - .:/rails-exchange
+      - .:/my-rails-project
       - gems:/gems
     depends_on:
       - db

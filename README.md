@@ -20,7 +20,7 @@ $ `gem install rails`
 
 Generate a rails project in ruby container:
 
-$ `rails new name-of-project --database=postgresql --skip-bundle`
+$ `rails new my-rails-project --database=postgresql --skip-bundle`
 (You can use any rails new options)
 
 Done. You can now run `exit` in container and it's will finished and removed/down because the command --rm
@@ -30,6 +30,7 @@ Done. You can now run `exit` in container and it's will finished and removed/dow
 Now, create a file with name Dockerfile in root of project.
 
 And use this configuration:
+(pay attention to the project name, node version, etc ... this is an example, you can customize it according to your needs)
 
 ```
 FROM ruby:2.7.1
@@ -47,7 +48,7 @@ nodejs yarn build-essential libpq-dev imagemagick git-all nano
 RUN gem install bundler
 
 # Set enviroment INSTALL_PATH
-ENV INSTALL_PATH /rails-exchange
+ENV INSTALL_PATH /my-rails-project
 
 # Create directory with INSTALL_PATH name
 RUN mkdir -p $INSTALL_PATH
@@ -64,3 +65,100 @@ ENV BUNDLE_PATH /gems
 # COPY all files in current folder to container.
 COPY . .
 ```
+
+The Dockerfile will determine a new "container" based on a container (ruby: 2.7.1 in this case) and customize it to your specifications.
+
+## Docker-Compose
+
+The docker-compose.yml file determine all the services you will use in your project (without install any in your local machine). In this example i use my Dockerfile to generate an "app" and a postgres as "db" direct from dockerhub.
+
+Create a file docker-compose.yml in root of project and use this example (customize with any service):
+
+```
+version: "3.8"
+
+services:
+  db:
+    image: "postgres:12.2"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+  app:
+    build: .
+    command: bash start.sh
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_PASSWORD=postgres
+    volumes:
+      - .:/rails-exchange
+      - gems:/gems
+    depends_on:
+      - db
+
+volumes:
+  postgres:
+  gems:
+```
+
+## Start.sh
+
+Create a file start.sh in root of project. This file will determine the commands when the container "app" is up:
+
+```
+# Install gems
+bundle check || bundle install
+
+# Run puma server
+bundle exec puma -C config/puma.rb
+```
+
+## Build
+
+Run `docker-compose build` to download, install, make everything to get up your rails app.
+
+## Up
+
+$ `docker-compose up` 
+(will start your rails app).
+
+## Observations
+
+### To run any command in your app container
+
+$ `docker-compose run --rm app bundle exec rails db:create db:migrate`
+(docker-compose run --rm app #AND YOUR COMMAND#)
+
+### Permission problem ?
+
+If you create any file from your container like `docker-compose run --rm app bundle exec rails g todos controller`, you will need a permission to edit the files in your local machine, run this:
+
+$ `sudo chown -R $USER:$USER .`
+
+### config/database
+
+Pay attention in your config/database.yml file if is set to connect with a docker db container. If you follow the steps in this document, your file should look like this:
+
+```
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: db
+  user: postgres
+  password: <%= ENV['DB_PASSWORD'] %>
+
+development:
+  <<: *default
+  database: my-rails-project_development
+
+test:
+  <<: *default
+  database: my-rails-project_test
+
+production:
+  <<: *default
+  database: my-rails-project_production
+  username: my-rails-project

@@ -151,7 +151,8 @@ production:
   <<: *default
   database: my-rails-project_production
   username: my-rails-project
-  
+```
+
 ### To run any command in your app container
 
 $ `docker-compose run --rm app bundle exec rails db:create db:migrate`

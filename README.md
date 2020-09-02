@@ -126,21 +126,6 @@ $ `docker-compose up`
 
 ## Observations
 
-### To run any command in your app container
-
-$ `docker-compose run --rm app bundle exec rails db:create db:migrate`
-(docker-compose run --rm app #AND YOUR COMMAND#)
-
-other example:
-
-$ `docker-compose run --rm app bundle exec rails webpacker:install`
-
-### Permission problem ?
-
-If you create any file from your container like `docker-compose run --rm app bundle exec rails g todos controller`, you will need a permission to edit the files in your local machine, run this:
-
-$ `sudo chown -R $USER:$USER .`
-
 ### config/database
 
 Pay attention in your config/database.yml file if is set to connect with a docker db container. If you follow the steps in this document, your file should look like this:
@@ -166,3 +151,18 @@ production:
   <<: *default
   database: my-rails-project_production
   username: my-rails-project
+  
+### To run any command in your app container
+
+$ `docker-compose run --rm app bundle exec rails db:create db:migrate`
+(docker-compose run --rm app #AND YOUR COMMAND#)
+
+other example:
+
+$ `docker-compose run --rm app bundle exec rails webpacker:install`
+
+### Permission problem ?
+
+If you create any file from your container like `docker-compose run --rm app bundle exec rails g todos controller`, you will need a permission to edit the files in your local machine, run this:
+
+$ `sudo chown -R $USER:$USER .`
